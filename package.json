@@ -1,0 +1,40 @@
+{
+  "name": "@sigma-db/cli",
+  "version": "0.0.0",
+  "description": "A simple CLI to create sigmaDB server and client instances communicating over UNIX domain sockets.",
+  "keywords": [
+    "database theory",
+    "relational databases",
+    "conjunctive queries",
+    "DBMS"
+  ],
+  "author": {
+    "name": "David Luis Wiegandt",
+    "email": "wigandtd@hu-berlin.de",
+    "url": "https://dlw93.github.io"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://dev.azure.com/dlw/sigmaDB/_git/cli"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=13.12.0"
+  },
+  "devDependencies": {
+    "@types/node": "^13.13.0",
+    "@types/yargs": "^15.0.4",
+    "typescript": "^3.8.3"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build"
+  },
+  "bin": {
+    "sigma": "./dist/index.js"
+  },
+  "dependencies": {
+    "@sigma-db/core": "^0.14.0",
+    "yargs": "^15.3.1"
+  }
+}

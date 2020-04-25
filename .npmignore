@@ -1,0 +1,10 @@
+.vscode/
+src/
+node_modules/
+
+.gitattributes
+.gitignore
+.npmignore
+azure-pipelines.yml
+package-lock.json
+tsconfig.json
