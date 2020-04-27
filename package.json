@@ -19,12 +19,16 @@
   },
   "license": "MIT",
   "engines": {
-    "node": ">=13.12.0"
+    "node": ">=14.0.0"
   },
   "devDependencies": {
-    "@types/node": "^13.13.0",
+    "@types/node": "^13.13.2",
     "@types/yargs": "^15.0.4",
     "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "@sigma-db/core": "^0.14.0",
+    "yargs": "^15.3.1"
   },
   "scripts": {
     "build": "tsc",
@@ -32,9 +36,5 @@
   },
   "bin": {
     "sigma": "./dist/index.js"
-  },
-  "dependencies": {
-    "@sigma-db/core": "^0.14.0",
-    "yargs": "^15.3.1"
   }
 }
