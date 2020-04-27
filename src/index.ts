@@ -32,9 +32,9 @@ yargs
         })
     .command(
         "client",
-        "client",
+        "Connects to the server on a given socket and allows to send queries against its served database instance",
         {
-            "socket": { alias: "s", description: "The UNIX domain socket to communicate on", type: "string", demandOption: true }
+            "socket": { alias: "s", description: "The UNIX domain socket to communicate on", type: "string", demandOption: true },
         },
         ({ socket }) => {
             const { stdin, stdout } = process;
@@ -51,5 +51,6 @@ yargs
                 });
         }
     )
+    .scriptName("sigma")
     .help()
     .argv;
