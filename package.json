@@ -1,6 +1,6 @@
 {
   "name": "@sigma-db/cli",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A simple CLI to create sigmaDB server and client instances communicating over UNIX domain sockets.",
   "keywords": [
     "database theory",
