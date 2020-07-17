@@ -8,7 +8,10 @@
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "noImplicitAny": true,
-    "incremental": true
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "incremental": true,
+    "resolveJsonModule": true
   },
   "include": [
     "src/**/*"
