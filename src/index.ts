@@ -14,22 +14,21 @@ const { "log-file": path } = yargs
     .argv;
 
 const initStdin = () => {
-// process.stdin.setRawMode(true);
-// process.stdin.on("keypress", (_str, key) => {
-//     if (key.shift && key.name === "enter") {
-//         process.stdout.write("\n  ");
-//     }
-// });
+    // process.stdin.setRawMode(true);
+    process.stdin.on("keypress", (_str, key) => {
+        if (key.shift && key.name === "enter") {
+            process.stdout.write("\n  ");
+        }
+    });
 }
 
 const printBanner = () => {
-    console.log(chalk.cyan(textSync("sigmaDB", { horizontalLayout: "fitted" })));
-    console.log();
-    console.log(chalk.cyan(`This is sigmaDB CLI v${version} using sigmaDB v${dependencies["@sigma-db/core"].slice(1)}`));
-    console.log();
+    const figlet = textSync("sigmaDB", { horizontalLayout: "fitted" });
+    const message = `This is sigmaDB CLI v${version} using sigmaDB v${dependencies["@sigma-db/core"].slice(1)}`;
+    process.stdout.write(chalk.cyan(`${figlet}\n\n${message}\n\n`));
 }
 
-const format = (result: Result) => {
+const formatResult = (result: Result) => {
     switch (result.type) {
         case ResultType.SUCCESS:
             return chalk.green("Done.");
@@ -71,7 +70,7 @@ const main = async () => {
     for await (const line of repl) {
         for (const statement of parser.parse(line)) {
             const result = engine.evaluate(statement, database);
-            const output = format(result);
+            const output = formatResult(result);
             console.log(output);
         }
         process.stdout.write("> ");
