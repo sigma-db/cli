@@ -1,6 +1,6 @@
 {
   "name": "@sigma-db/cli",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "A simple CLI to use and test the sigmaDB engine.",
   "keywords": [
     "database theory",
