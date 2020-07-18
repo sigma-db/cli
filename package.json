@@ -24,13 +24,16 @@
   "devDependencies": {
     "@types/figlet": "^1.2.0",
     "@types/node": "^14.0.23",
+    "@types/semver": "^7.3.1",
     "typescript": "^3.9.6"
   },
   "dependencies": {
-    "@sigma-db/core": "^0.14.6",
+    "@sigma-db/core": "latest",
+    "axios": "^0.19.2",
     "chalk": "^4.1.0",
     "cli-table3": "^0.6.0",
-    "figlet": "^1.5.0"
+    "figlet": "^1.5.0",
+    "semver": "^7.3.2"
   },
   "scripts": {
     "build": "tsc",
