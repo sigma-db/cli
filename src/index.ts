@@ -1,4 +1,4 @@
-//#!/usr/bin/env node
+#!/usr/bin/env node
 import { createInterface } from "readline";
 import { Instance, Parser, Engine, Relation, Result, ResultType } from "@sigma-db/core";
 import { textSync } from "figlet";
