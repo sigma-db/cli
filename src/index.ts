@@ -56,7 +56,7 @@ class Formatter {
     private formatRelation(relation: Relation): string {
         const { name, arity, size } = relation;
         if (arity === 0) {  // boolean query
-            return `${name ?? ""}${name ? ": " : ""}${(!!size ? chalk.green : chalk.red)(!!size)}`;
+            return `${name ?? ""}${name ? ": " : ""}${(!!size ? chalk.green : chalk.red)(!!size)}\n`;
         } else if (size > 0) {
             const table = new Table({
                 head: relation.schema.map(attr => attr.name),
@@ -66,14 +66,14 @@ class Formatter {
             for (const tuple of relation.tuples()) {
                 table.push(this.formatTuple(tuple));
             }
-            return `\n${name ?? ""} (${size} ${size === 1 ? "tuple" : "tuples"}):\n${table.toString()}\n`;
+            return `${name ?? ""} (${size} ${size === 1 ? "tuple" : "tuples"}):\n${table.toString()}\n`;
         } else {
-            return `${name ?? ""} (empty)`;
+            return `${name ?? ""} (empty)\n`;
         }
     }
 }
 
-const checkUpdate = async () => {
+const doCheckForUpdate = async () => {
     const metadata = await Axios.get<{ "dist-tags": { "latest": string }, "time": Record<string, string> }>("https://registry.npmjs.org/@sigma-db/core");
     const { "dist-tags": { latest }, time: { [latest]: timestamp } } = metadata.data;
     return {
@@ -83,9 +83,11 @@ const checkUpdate = async () => {
 }
 
 const main = async () => {
-    const update = checkUpdate();
+    const { stdin, stdout, argv: [, , path] } = process;
 
-    const database = Instance.create({ path: process.argv[2] });
+    const update = doCheckForUpdate();
+
+    const database = Instance.create({ path });
     const parser = Parser.create();
     const engine = Engine.create();
     const formatter = Formatter.create();
@@ -93,19 +95,20 @@ const main = async () => {
     const figlet = textSync("sigmaDB", { horizontalLayout: "fitted" });
     const version = require(require.resolve("@sigma-db/core/package.json")).version;
     const message = `This is sigmaDB CLI using sigmaDB v${version}.`;
+    const greeting = chalk.cyan(`${figlet}\n\n${message}\n\n`);
 
     console.clear();
-    process.stdout.write(chalk.cyan(`${figlet}\n\n${message}\n\n`));
+    stdout.write(greeting);
 
     const { latest, time } = await update;
     if (semver.gt(latest, version)) {
         const color = semver.diff(latest, version) === "patch" ? chalk.yellow : chalk.red;
-        process.stdout.write(color(`An update to sigmaDB v${latest} published on ${new Intl.DateTimeFormat("en-US").format(time)} is available.\nQuit the CLI and run "npm i -g @sigma-db/cli" to install.\n\n`))
+        stdout.write(color(`An update to sigmaDB v${latest} published on ${new Intl.DateTimeFormat("en-US").format(time)} is available.\nQuit the CLI and run "npm i -g @sigma-db/cli" to install.\n\n`))
     }
 
-    const repl = createInterface(process.stdin);
+    const repl = createInterface(stdin);
 
-    process.stdout.write("> ");
+    stdout.write("> ");
     repl.prompt();
 
     for await (const line of repl) {
@@ -115,7 +118,7 @@ const main = async () => {
             console.log(output);
         }
 
-        process.stdout.write("> ");
+        stdout.write("> ");
         repl.prompt();
     }
 }
