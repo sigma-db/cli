@@ -1,7 +1,7 @@
 {
   "name": "@sigma-db/cli",
   "version": "0.2.0",
-  "description": "A simple CLI to create sigmaDB server and client instances communicating over UNIX domain sockets.",
+  "description": "A simple CLI to use and test the sigmaDB engine.",
   "keywords": [
     "database theory",
     "relational databases",
@@ -24,15 +24,13 @@
   "devDependencies": {
     "@types/figlet": "^1.2.0",
     "@types/node": "^14.0.23",
-    "@types/yargs": "^15.0.5",
     "typescript": "^3.9.6"
   },
   "dependencies": {
-    "@sigma-db/core": "^0.14.5",
+    "@sigma-db/core": "^0.14.6",
     "chalk": "^4.1.0",
     "cli-table3": "^0.6.0",
-    "figlet": "^1.5.0",
-    "yargs": "^15.3.1"
+    "figlet": "^1.5.0"
   },
   "scripts": {
     "build": "tsc",

@@ -1,67 +1,87 @@
-#!/usr/bin/env node
+//#!/usr/bin/env node
 import { createInterface } from "readline";
-import { Instance, Parser, Engine, Result, ResultType } from "@sigma-db/core";
+import { Instance, Parser, Engine, Relation, Result, ResultType } from "@sigma-db/core";
 import { textSync } from "figlet";
 import * as chalk from "chalk";
 import * as Table from "cli-table3";
-import * as yargs from "yargs";
-import { version, dependencies } from "../package.json";
+import { DataType, Attribute } from "@sigma-db/core/types/database";
 
-const { "log-file": path } = yargs
-    .option("log-file", { alias: "l", description: "The path to the log file of the database instance", type: "string" })
-    .scriptName("sigma")
-    .help()
-    .argv;
+class Formatter {
+    public static create() {
+        return new Formatter();
+    }
 
-const initStdin = () => {
-    // process.stdin.setRawMode(true);
-    process.stdin.on("keypress", (_str, key) => {
-        if (key.shift && key.name === "enter") {
-            process.stdout.write("\n  ");
+    private constructor() { }
+
+    public format(result: Result): string {
+        switch (result.type) {
+            case ResultType.SUCCESS:
+                return chalk.green("Done.");
+            case ResultType.ERROR:
+                return chalk.red(result.message);
+            case ResultType.RELATION:
+                return this.formatRelation(result.relation);
         }
-    });
-}
+    }
 
-const printBanner = () => {
-    const figlet = textSync("sigmaDB", { horizontalLayout: "fitted" });
-    const message = `This is sigmaDB CLI v${version} using sigmaDB v${dependencies["@sigma-db/core"].slice(1)}`;
-    process.stdout.write(chalk.cyan(`${figlet}\n\n${message}\n\n`));
-}
-
-const formatResult = (result: Result) => {
-    switch (result.type) {
-        case ResultType.SUCCESS:
-            return chalk.green("Done.");
-        case ResultType.ERROR:
-            return chalk.red(result.message);
-        case ResultType.RELATION:
-            const table = new Table({
-                head: result.relation.schema.map(attr => attr.name),
-                style: { head: ["white"] }
-            });
-            for (const tuple of result.relation.tuples()) {
-                table.push(Object.values(tuple).map(value => {
-                    switch (typeof value) {
-                        case "string":
-                            return chalk.yellow(`"${value}"`);
-                        case "number":
-                            return chalk.magenta(value);
-                        case "boolean":
-                            return value ? chalk.green("true") : chalk.red("false");
-                    }
-                }));
+    private initColumnAlignments(schema: Attribute[]): Array<"right" | "center" | "left"> {
+        return schema.map(attr => {
+            switch (attr.type) {
+                case DataType.INT:
+                    return "right";
+                case DataType.STRING:
+                    return "left";
+                case DataType.BOOL:
+                case DataType.CHAR:
+                    return "center";
             }
-            return `${result.relation.name ?? ""} (${result.relation.size} ${result.relation.size === 1 ? "tuple" : "tuples"}):\n${table.toString()}`;
+        });
+    }
+
+    private formatTuple(tuple: Array<string | number | boolean>): string[] {
+        return tuple.map(value => {
+            switch (typeof value) {
+                case "string":
+                    return chalk.yellow(`"${value}"`);
+                case "number":
+                    return chalk.magenta(value);
+                case "boolean":
+                    return (value ? chalk.green : chalk.red)(value);
+            }
+        })
+    }
+
+    private formatRelation(relation: Relation): string {
+        const { name, arity, size } = relation;
+        if (arity === 0) {  // boolean query
+            return `${name ?? ""}${name ? ": " : ""}${(!!size ? chalk.green : chalk.red)(!!size)}`;
+        } else if (size > 0) {
+            const table = new Table({
+                head: relation.schema.map(attr => attr.name),
+                style: { head: ["white", "bold"] },
+                colAligns: this.initColumnAlignments(relation.schema),
+            });
+            for (const tuple of relation.tuples()) {
+                table.push(this.formatTuple(tuple));
+            }
+            return `\n${name ?? ""} (${size} ${size === 1 ? "tuple" : "tuples"}):\n${table.toString()}\n`;
+        } else {
+            return `${name ?? ""} (empty)`;
+        }
     }
 }
 
 const main = async () => {
-    initStdin();
-    printBanner();
-
-    const database = Instance.create({ path });
+    const database = Instance.create({ path: process.argv[2] });
     const parser = Parser.create();
     const engine = Engine.create();
+    const formatter = Formatter.create();
+
+    const figlet = textSync("sigmaDB", { horizontalLayout: "fitted" });
+    const version = require(require.resolve("@sigma-db/core/package.json")).version;
+    const message = `This is sigmaDB CLI using sigmaDB v${version}`;
+    process.stdout.write(chalk.cyan(`${figlet}\n\n${message}\n\n`));
+
     const repl = createInterface(process.stdin);
 
     process.stdout.write("> ");
@@ -70,9 +90,10 @@ const main = async () => {
     for await (const line of repl) {
         for (const statement of parser.parse(line)) {
             const result = engine.evaluate(statement, database);
-            const output = formatResult(result);
+            const output = formatter.format(result);
             console.log(output);
         }
+
         process.stdout.write("> ");
         repl.prompt();
     }
