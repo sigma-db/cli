@@ -1,12 +1,11 @@
 #!/usr/bin/env node
-import { createInterface } from "readline";
-import { Instance, Parser, Engine, Relation, Result, ResultType } from "@sigma-db/core";
+import { createInterface, Interface } from "readline";
+import { Instance, Parser, Engine, Relation, Attribute, DataType, Result, ResultType } from "@sigma-db/core";
 import { textSync } from "figlet";
 import Axios from "axios";
 import * as chalk from "chalk";
 import * as Table from "cli-table3";
 import * as semver from "semver";
-import { DataType, Attribute } from "@sigma-db/core/types/database";
 
 class Formatter {
     public static create() {
@@ -73,7 +72,7 @@ class Formatter {
     }
 }
 
-const doCheckForUpdate = async () => {
+const retrieveLatestVersion = async () => {
     const metadata = await Axios.get<{ "dist-tags": { "latest": string }, "time": Record<string, string> }>("https://registry.npmjs.org/@sigma-db/core");
     const { "dist-tags": { latest }, time: { [latest]: timestamp } } = metadata.data;
     return {
@@ -85,7 +84,7 @@ const doCheckForUpdate = async () => {
 const main = async () => {
     const { stdin, stdout, argv: [, , path] } = process;
 
-    const update = doCheckForUpdate();
+    const latestVersionInfo = retrieveLatestVersion();
 
     const database = Instance.create({ path });
     const parser = Parser.create();
@@ -100,15 +99,18 @@ const main = async () => {
     console.clear();
     stdout.write(greeting);
 
-    const { latest, time } = await update;
+    const { latest, time } = await latestVersionInfo;
     if (semver.gt(latest, version)) {
         const color = semver.diff(latest, version) === "patch" ? chalk.yellow : chalk.red;
-        stdout.write(color(`An update to sigmaDB v${latest} published on ${new Intl.DateTimeFormat("en-US").format(time)} is available.\nQuit the CLI and run "npm i -g @sigma-db/cli" to install.\n\n`))
+        stdout.write(color([
+            `An update to sigmaDB v${latest} published on ${new Intl.DateTimeFormat("en-US").format(time)} is available.`,
+            `Quit and run ${chalk.whiteBright.italic("npm i -g @sigma-db/cli")} to install.`,
+            "\n",
+        ].join("\n")));
     }
 
     const repl = createInterface(stdin);
 
-    stdout.write("> ");
     repl.prompt();
 
     for await (const line of repl) {
@@ -117,10 +119,15 @@ const main = async () => {
             const output = formatter.format(result);
             console.log(output);
         }
-
-        stdout.write("> ");
         repl.prompt();
     }
+}
+
+// Workaround to circumvent an apparent Node.js bug omitting the prompt sign when calling function `prompt`
+const _prompt = Interface.prototype.prompt;
+Interface.prototype.prompt = function (preserveCursor?: boolean): void {
+    process.stdout.write("> ");
+    _prompt.call(this, preserveCursor);
 }
 
 main();
